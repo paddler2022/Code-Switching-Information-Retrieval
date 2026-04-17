@@ -131,7 +131,7 @@ Available rerankers: `bge-reranker-v2-m3`, `jina-reranker-v3`, `qwen3-reranker-{
 
 - `playground.py` writes MTEB-format JSON per task into
   `<evaluation_output_dir>/<YYYYMMDD>/<output_subfolder_name>/<model_name>/<TaskName>.json`.
-- Two-stage writes Stage 1 predictions under `predictions_dir/` and Stage 2 final scores under `output_dir/`.
+- CrossEncoder tasks: writes Stage 1 predictions under `predictions_dir/` and Stage 2 final scores under `output_dir/`.
 
 ## License
 
