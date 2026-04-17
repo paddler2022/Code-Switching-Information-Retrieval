@@ -19,6 +19,7 @@ from .ds1000_retrieval import DS1000Retrieval
 from .fresh_stack_retrieval import FreshStackRetrieval
 from .human_eval_retrieval import HumanEvalRetrieval
 from .human_eval_codeswitching_retrieval import HumanEvalRetrievalCodeSwitching
+from .human_eval_csrl_retrieval import HumanEvalRetrievalCSRL
 from .japanese_code1_retrieval import JapaneseCode1Retrieval
 from .mbpp_retrieval import MBPPRetrieval
 from .stack_overflow_qa_retrieval import StackOverflowQARetrieval
@@ -45,6 +46,7 @@ __all__ = [
     "FreshStackRetrieval",
     "HumanEvalRetrieval",
     "HumanEvalRetrievalCodeSwitching",
+    "HumanEvalRetrievalCSRL",
     "JapaneseCode1Retrieval",
     "MBPPRetrieval",
     "StackOverflowQARetrieval",

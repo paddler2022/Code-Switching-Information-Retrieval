@@ -1,0 +1,61 @@
+{
+  "model": "sentence-transformers/all-MiniLM-L12-v2",
+  "runs": [
+    {
+      "label": "HumanEval Orig",
+      "group": "Original",
+      "index": 3,
+      "task_name": "HumanEvalRetrieval",
+      "score": 70.135,
+      "dataset_sizes": {
+        "subset": "default",
+        "split": "test",
+        "queries": 158,
+        "corpus": 158,
+        "relevant_docs": 158
+      },
+      "status": "ok"
+    },
+    {
+      "label": "HumanEval Chinese CSR",
+      "group": "Fixed_Chinese",
+      "index": 0,
+      "task_name": "HumanEvalRetrievalCSRL_ja",
+      "score": 60.328,
+      "dataset_sizes": {
+        "subset": "default",
+        "split": "test",
+        "queries": 158,
+        "corpus": 158,
+        "relevant_docs": 158
+      },
+      "status": "ok"
+    },
+    {
+      "label": "HumanEval Japanese CSR",
+      "group": "Fixed_Japanese",
+      "index": 0,
+      "task_name": "HumanEvalRetrievalCSRL_ja",
+      "score": 62.208,
+      "dataset_sizes": {
+        "subset": "default",
+        "split": "test",
+        "queries": 158,
+        "corpus": 158,
+        "relevant_docs": 158
+      },
+      "status": "ok"
+    }
+  ],
+  "aggregate": {
+    "HumanEval CSR-L": 61.268
+  },
+  "table_expected": {
+    "HumanEval Orig": 70.08,
+    "HumanEval CSR-L": 62.18
+  },
+  "difference": {
+    "HumanEval Orig": 0.05500000000000682,
+    "HumanEval CSR-L": -0.911999999999999
+  }
+}

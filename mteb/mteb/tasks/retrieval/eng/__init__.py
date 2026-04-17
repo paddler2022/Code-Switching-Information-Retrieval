@@ -189,9 +189,11 @@ from .temp_reason_l3_fact_retrieval import TempReasonL3Fact
 from .temp_reason_l3_pure_retrieval import TempReasonL3Pure
 from .topi_ocqa_retrieval import TopiOCQARetrieval, TopiOCQARetrievalHardNegatives
 from .touche2020_retrieval import Touche2020, Touche2020v3Retrieval
-from .touche2020_codeswitching_retrieval import Touche2020CodeSwitching, Touche2020v3RetrievalCodeSwitching
+from .touche2020_codeswitching_retrieval import Touche2020v3RetrievalCodeSwitching
+from .touche2020_csrl_retrieval import Touche2020v3RetrievalCSRL
 from .treccovid_retrieval import TRECCOVID
 from .treccovid_codeswitching_retrieval import TRECCOVIDCodeSwitching
+from .treccovid_csrl_retrieval import TRECCOVIDCSRL
 from .trecdl_retrieval import TRECDL2019, TRECDL2020
 from .tu_berlin_t2i_retrieval import TUBerlinT2IRetrieval
 from .vidore_bench_retrieval import (
@@ -226,6 +228,7 @@ __all__ = [
     "SIQA",
     "TRECCOVID",
     "TRECCOVIDCodeSwitching",
+    "TRECCOVIDCSRL",
     "TRECDL2019",
     "TRECDL2020",
     "AILACasedocs",
@@ -407,8 +410,8 @@ __all__ = [
     "TopiOCQARetrievalHardNegatives",
     "Touche2020",
     "Touche2020v3Retrieval",
-    "Touche2020CodeSwitching",
     "Touche2020v3RetrievalCodeSwitching",
+    "Touche2020v3RetrievalCSRL",
     "VQA2IT2TRetrieval",
     "VidoreArxivQARetrieval",
     "VidoreDocVQARetrieval",

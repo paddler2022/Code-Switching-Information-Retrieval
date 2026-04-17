@@ -6,7 +6,6 @@ from .arxiv_hierarchical_clustering import (
 )
 from .arxiv_hierarchical_clustering_codeswitching import (
     ArXivHierarchicalClusteringP2PCodeSwitching,
-    ArXivHierarchicalClusteringS2SCodeSwitching,
 )
 from .big_patent_clustering import BigPatentClustering, BigPatentClusteringFast
 from .biorxiv_clustering_p2p import BiorxivClusteringP2P, BiorxivClusteringP2PFast
@@ -46,7 +45,6 @@ __all__ = [
     "ArXivHierarchicalClusteringP2P",
     "ArXivHierarchicalClusteringP2PCodeSwitching",
     "ArXivHierarchicalClusteringS2S",
-    "ArXivHierarchicalClusteringS2SCodeSwitching",
     "ArxivClusteringP2P",
     "ArxivClusteringP2PFast",
     "ArxivClusteringS2S",

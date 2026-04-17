@@ -1,37 +1,25 @@
 from __future__ import annotations
 
-import json
-import os
 from datasets import load_dataset
 from tqdm import tqdm
 
 from mteb.abstasks.retrieval import AbsTaskRetrieval
 from mteb.abstasks.task_metadata import TaskMetadata
 
-
-def load_jsonl(filepath):
-
-    data = []
-    with open(filepath, 'r', encoding='utf-8') as f:
-        for line in f:
-            if line.strip():
-                data.append(json.loads(line))
-    return data
+CS_MTEB_REPO = "UTokyo-Yokoya-Lab/AskUbuntuDupQuestions_CS-MTEB"
+SUPPORTED_LANGUAGES = ["zh", "ja", "de", "es", "ko", "fr", "it", "pt", "nl"]
 
 
 class AskUbuntuDupQuestionsCodeSwitching(AbsTaskRetrieval):
-    """
-    AskUbuntuDupQuestions Code-Switching Task
-    """
+    """AskUbuntuDupQuestions Code-Switching variant. Queries are rewritten in
+    {lang}-English code-switching style; corpus/qrels/top_ranked come from the
+    same CS-MTEB repo."""
 
     metadata = TaskMetadata(
         name="AskUbuntuDupQuestionsCodeSwitching",
-        description="AskUbuntuDupQuestions Code-Switching variant. Questions from AskUbuntu with manual annotations marking pairs of questions as similar or non-similar. Corpus and qrels are loaded from the official dataset.",
+        description="AskUbuntuDupQuestions Code-Switching variant. Questions from AskUbuntu with manual annotations marking pairs of questions as similar or non-similar.",
         reference="https://github.com/taolei87/askubuntu",
-        dataset={
-            "path": "mteb/AskUbuntuDupQuestions",
-            "revision": "c5691e3c48741d5f83b5cc8e630653d7a8cfc048",
-        },
+        dataset={"path": CS_MTEB_REPO, "revision": "main"},
         type="Reranking",
         category="t2t",
         modalities=["text"],
@@ -45,7 +33,6 @@ class AskUbuntuDupQuestionsCodeSwitching(AbsTaskRetrieval):
         annotations_creators="human-annotated",
         dialect=[],
         sample_creation="found",
-        prompt="Retrieve duplicate questions from AskUbuntu forum",
         bibtex_citation=r"""
 @article{wang-2021-TSDAE,
   author = {Wang, Kexin and Reimers, Nils and  Gurevych, Iryna},
@@ -58,74 +45,67 @@ class AskUbuntuDupQuestionsCodeSwitching(AbsTaskRetrieval):
 """,
     )
 
-    def __init__(self, query_file: str = None, **kwargs):
-
+    def __init__(self, language: str = "zh", **kwargs):
         super().__init__(**kwargs)
-        self.query_file = query_file or os.getenv("ASKUBUNTU_QUERY_FILE")
+        if language not in SUPPORTED_LANGUAGES:
+            raise ValueError(f"Unsupported language '{language}'. Supported: {SUPPORTED_LANGUAGES}")
+        self.language = language
+        self.metadata.name = f"AskUbuntuDupQuestionsCodeSwitching_{language}"
 
     def load_data(self, **kwargs):
-        """
-        Load data
-        - queries: Load from local file
-        - corpus and qrels: load from huggingface
-        """
         if self.data_loaded:
             return
 
-        if not self.query_file:
-            raise ValueError(
-                "Query file path not provided. "
-                "Please pass query_file parameter or set ASKUBUNTU_QUERY_FILE environment variable."
-            )
+        repo = CS_MTEB_REPO
+        query_config = f"queries_{self.language}_en"
 
-        if not os.path.exists(self.query_file):
-            raise FileNotFoundError(f"Query file not found: {self.query_file}")
+        print(f"Loading queries from {repo} config={query_config}")
+        query_ds = load_dataset(repo, query_config)
+        query_split = list(query_ds.values())[0]
 
-        print(f"Loading queries from local file: {self.query_file}")
-        query_lines = load_jsonl(self.query_file)
+        print(f"Loading corpus from {repo}")
+        corpus_ds = load_dataset(repo, "corpus")
+        corpus_split = list(corpus_ds.values())[0]
 
-        dataset_path = self.metadata.dataset["path"]
-        revision = self.metadata.dataset["revision"]
+        print(f"Loading qrels from {repo}")
+        qrels_ds = load_dataset(repo, "default")
+        qrels_split = list(qrels_ds.values())[0]
 
-        print(f"Loading corpus from HuggingFace: {dataset_path}")
-        corpus_dataset = load_dataset(dataset_path, "corpus", revision=revision)
-        corpus_lines = list(corpus_dataset['test'])
-
-        print(f"Loading qrels from HuggingFace: {dataset_path}")
-        qrels_dataset = load_dataset(dataset_path, "default", revision=revision)
-        qrels_lines = list(qrels_dataset['test'])
+        print(f"Loading top_ranked from {repo}")
+        top_ranked_ds = load_dataset(repo, "top_ranked")
+        top_ranked_split = list(top_ranked_ds.values())[0]
 
         self.queries = {"test": {}}
         self.corpus = {"test": {}}
         self.relevant_docs = {"test": {}}
+        self.top_ranked = {"test": {}}
 
-        for idx, item in enumerate(tqdm(query_lines, desc="Loading queries")):
-            try:
-                qid = str(item.get('_id') or item['id'])
-                text = item['text']
-                self.queries["test"][qid] = text
-            except KeyError as e:
-                raise KeyError(f"Missing key {e} in query item {idx}: {item}")
+        for item in tqdm(query_split, desc="Loading queries"):
+            qid = str(item.get("_id") or item.get("id"))
+            self.queries["test"][qid] = item["text"]
 
-        for item in tqdm(corpus_lines, desc="Loading corpus"):
-            doc_id = str(item.get('_id') or item.get('id'))
+        for item in tqdm(corpus_split, desc="Loading corpus"):
+            doc_id = str(item.get("_id") or item.get("id"))
             self.corpus["test"][doc_id] = {
-                "title": item.get('title', ''),
-                "text": item.get('text', '')
+                "title": item.get("title", ""),
+                "text": item.get("text", ""),
             }
 
-        for item in tqdm(qrels_lines, desc="Loading qrels"):
-            qid = str(item.get('query-id'))
-            doc_id = str(item.get('corpus-id'))
-            score = int(item.get('score'))
-
+        for item in tqdm(qrels_split, desc="Loading qrels"):
+            qid = str(item.get("query-id"))
+            doc_id = str(item.get("corpus-id"))
+            score = int(item.get("score", 1))
             if qid in self.queries["test"]:
-                if qid not in self.relevant_docs["test"]:
-                    self.relevant_docs["test"][qid] = {}
-                self.relevant_docs["test"][qid][doc_id] = score
+                self.relevant_docs["test"].setdefault(qid, {})[doc_id] = score
 
-        print(f"Loaded {len(self.queries['test'])} queries")
-        print(f"Loaded {len(self.corpus['test'])} documents")
-        print(f"Loaded {len(self.relevant_docs['test'])} query-document relevance pairs")
+        for item in tqdm(top_ranked_split, desc="Loading top_ranked"):
+            qid = str(item.get("query-id"))
+            doc_ids = [str(x) for x in item.get("corpus-ids", [])]
+            if qid in self.queries["test"]:
+                self.top_ranked["test"][qid] = doc_ids
 
+        print(f"Loaded {len(self.queries['test'])} queries, "
+              f"{len(self.corpus['test'])} documents, "
+              f"{len(self.relevant_docs['test'])} qrels, "
+              f"{len(self.top_ranked['test'])} top_ranked lists")
         self.data_loaded = True
